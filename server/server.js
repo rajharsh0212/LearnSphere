@@ -4,6 +4,7 @@ import 'dotenv/config';
 import connectDB from './configs/mongodb.js';
 import authRoutes from './routes/auth.js';
 import connectCloudinary from './configs/cloudinary.js';
+import { stripeWebhook } from './controllers/webhooksController.js';
 const app= express();
 await connectDB();
 await connectCloudinary();
@@ -15,7 +16,7 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-
+app.post('/stripe', express.raw({ type: 'application/json' }), stripeWebhook); // Middleware for Stripe webhook
 app.use('/api/auth',  authRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

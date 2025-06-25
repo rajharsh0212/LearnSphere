@@ -14,7 +14,7 @@ export const addCourse = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
-    const user = await User.findOne(userId);
+    const user = await User.findById(userId)
 
     if (!user) {
       return res.status(404).json("User not found!");
@@ -43,6 +43,8 @@ export const addCourse = async (req, res) => {
     const newCourse = new Course(parsedCourseData);
 
     await newCourse.save();
+    user.createdCourses.push(newCourse._id);
+    await user.save();
 
     res
       .status(200)
@@ -73,7 +75,7 @@ export const educatorDashboardData= async()=>{
     try
     {
         const educator=req.user?.id; 
-        const courses= await Course.find({educator}); 
+        const courses= await Course.findById(educator);
         const totalCourses=courses.length; 
         
         const courseIds = courses.map((course) => course._id); 
@@ -90,31 +92,21 @@ export const educatorDashboardData= async()=>{
 
         const enrolledStudentsData = [];
         for (const course of courses) {
-          const students = await UserModel.find(
+          const students = await User.find(
             { _id: { $in: course.enrolledStudents } },
-            "name imageUrl"
+            "name"
           );
           students.forEach((student) => {
             enrolledStudentsData.push({ student, courseTitle: course.courseTitle });
           });
         }
 
-        const enrolledStudents = purchasedCourses.reduce((acc, purchased) => {
-          if (!acc[purchased.userId]) {
-            acc[purchased.userId] = [purchased.courseId];
-          } else {
-            acc[purchased.userId].push(purchased.courseId);
-          }
-          return acc;
-        }, {});
-
         res.json({
           success: true,
           dashboardData: {
             totalEarnings,
             totalCourses,
-            enrolledStudentsData,
-            enrolledStudents
+            enrolledStudentsData
           },
         });
       } catch (error) {
@@ -127,28 +119,28 @@ export const educatorDashboardData= async()=>{
 
 export const getEnrolledStudentsData = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const userId = req.user?.id; // assuming userId is set in the request by auth middleware
 
     // If user isn't authenticated, return a 401 error
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
-    const user = await UserModel.findOne({ clerkUserId: userId });
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json("User not found!");
     }
 
-    const courses = await CourseModel.find({ educator: user._id });
+    const courses = await Course.find({ educator: userId });
 
     const courseIds = courses.map((course) => course._id);
 
     // get all purchased courses
-    const purchasedCourses = await PurchaseModel.find({
+    const purchasedCourses = await Purchase.find({
       courseId: { $in: courseIds },
       status: "completed",
-    }).populate("userId", "name imageUrl").populate("courseId", "courseTitle");
+    }).populate("userId", "name").populate("courseId", "courseTitle");
 
     const enrolledStudentsData = purchasedCourses.map((purchased) => {
       return {
