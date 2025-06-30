@@ -58,11 +58,10 @@ const Dashboard = () => {
   return (
     <div className="bg-gray-50/50">
       <div className="p-4 sm:p-6 md:p-8">
-        <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
           Dashboard
         </h1>
-        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
@@ -80,7 +79,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500">{stat.label}</p>
               </div>
             </div>
-          
           ))}
         </div>
 
