@@ -1,29 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-const RatingComponent = ({ initialRating, onRate }) => {
-  const [rating, setRating] = useState(initialRating || 0);
-
-  const handleRating = (value) => {
-    setRating(value);
-    if (onRate) onRate(value);
-  };
-
-  useEffect(() => {
-    if (initialRating) {
-      setRating(initialRating);
-    }
-  }, [initialRating]);
-
+const RatingDisplay = ({ rating }) => {
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 items-center">
       {Array.from({ length: 5 }).map((_, index) => {
-        const startValue = index + 1;
+        const starValue = index + 1;
         return (
           <span
-            onClick={() => handleRating(startValue)}
             key={index}
-            className={`text-xl sm:text-2xl cursor-pointer transition-colors ${
-              startValue <= rating ? "text-yellow-500" : "text-gray-400"
+            className={`text-xl sm:text-2xl transition-colors ${
+              starValue <= rating ? "text-yellow-400" : "text-gray-300"
             }`}
           >
             &#9733;
@@ -34,4 +20,4 @@ const RatingComponent = ({ initialRating, onRate }) => {
   );
 };
 
-export default RatingComponent;
+export default RatingDisplay;

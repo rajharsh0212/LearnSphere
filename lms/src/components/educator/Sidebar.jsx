@@ -7,7 +7,7 @@ const Sidebar = () => {
   const menuItems = [
     {
       name: "Dashboard",
-      path: "/educator",
+      path: "/educator/dashboard",
       icon: assets.home_icon,
     },
     {
@@ -36,7 +36,7 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `flex items-center md:flex-row flex-col md:justify-start justify-center py-3.5 md:px-10 gap-3 ${
                 isActive
-                  ? "bg-indigo-50 border-r-[6px] border-indigo-500/90"
+                  ? "bg-indigo-50 border-r-[6px] border-blue-600/90"
                   : "hover:bg-indigo-100/90 border-r-[6px] border-white hover:border-r-100/90"
               }`
             }

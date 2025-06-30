@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import logo from '../assets/logo_image.png'; // Assuming you have a logo to import
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -28,49 +29,78 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-blue-600 mb-4 text-center">Sign in</h2>
-        {err && <p className="text-red-500 mb-2">{err}</p>}
-        <div className="flex justify-center gap-4 mb-4">
-          <button
-            className={`px-4 py-2 rounded-full ${role === 'student' ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600'}`}
-            onClick={() => setRole('student')}
-          >
-            Student
-          </button>
-          <button
-            className={`px-4 py-2 rounded-full ${role === 'educator' ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600'}`}
-            onClick={() => setRole('educator')}
-          >
-            Educator
-          </button>
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-100 pt-16">
+      {/* Left Pane: Branding */}
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-800 flex-col justify-center items-center p-12 text-white">
+        <h1 className="text-5xl font-extrabold mb-4">Welcome Back to LearnSphere</h1>
+        <p className="text-xl text-blue-100">Your journey to knowledge continues here. Log in to access your world of learning.</p>
+      </div>
+
+      {/* Right Pane: Form */}
+      <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-4 sm:p-8">
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-2xl">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Log In</h2>
+          
+          {err && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{err}</p>}
+
+          {/* Role Switcher */}
+          <div className="grid grid-cols-2 gap-2 bg-gray-200 p-1 rounded-lg mb-6">
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${role === 'student' ? 'bg-white text-blue-600 shadow' : 'bg-transparent text-gray-600 hover:bg-white/50'}`}
+              onClick={() => setRole('student')}
+            >
+              I'm a Student
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${role === 'educator' ? 'bg-white text-blue-600 shadow' : 'bg-transparent text-gray-600 hover:bg-white/50'}`}
+              onClick={() => setRole('educator')}
+            >
+              I'm an Educator
+            </button>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 sr-only">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="Email Address"
+                required
+                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 sr-only">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="Password"
+                required
+                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                onChange={e => setPassword(e.target.value)}
+              />
+            </div>
+            
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105"
+            >
+              Login as {role.charAt(0).toUpperCase() + role.slice(1)}
+            </button>
+          </form>
+
+          <p className="mt-8 text-sm text-gray-600 text-center">
+            Don't have an account?{' '}
+            <span 
+              className="text-blue-600 hover:underline cursor-pointer font-semibold" 
+              onClick={() => navigate('/register')}
+            >
+              Register now
+            </span>
+          </p>
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            required
-            className="w-full p-2 border rounded"
-            onChange={e => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            className="w-full p-2 border rounded"
-            onChange={e => setPassword(e.target.value)}
-          />
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-            Login
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-gray-600 text-center">
-          Don't have an account?{' '}
-          <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => navigate('/register')}>
-            Register
-          </span>
-        </p>
       </div>
     </div>
   );

@@ -1,10 +1,24 @@
 import { FiSearch } from "react-icons/fi";
 import SearchBar from "./SearchBar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 const HeroSection = () => {
+  const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (auth.token) {
+      toast.info("You are already logged in.");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-b from-blue-100 to-white pt-25 pb-10 px-4 w-full">
+    <div className="bg-white pt-25 pb-12 px-4 w-full">
       <div className="max-w-6xl mx-auto text-center">
         {/* Heading */}
         <h1 className="text-4xl md:text-5xl xl:text-6xl pt-35 font-extrabold text-gray-900 leading-tight">
@@ -39,10 +53,10 @@ const HeroSection = () => {
 
         {/* CTA Buttons */}
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <Link to={"/login"} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-md font-semibold">
+          <button onClick={handleGetStarted} className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg">
             Get Started
-          </Link>
-          <Link to={"/course-list"} className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-semibold">
+          </button>
+          <Link to={"/course-list"} className="bg-white border border-gray-300 text-gray-700 font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-md hover:shadow-lg">
             Explore Courses
           </Link>
         </div>

@@ -2,10 +2,14 @@ import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
 import { AuthContext } from '../../context/AuthContext';
+import { AppContext } from '../../context/AppContext';
 import logo from '../../assets/logo_image.png'; // Update path as needed
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const StudentNavbar = () => {
   const { auth, logout, login } = useContext(AuthContext);
+  const { backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -14,18 +18,24 @@ const StudentNavbar = () => {
     navigate('/login');
   };
 
-  const switchToEducator = () => {
-    const user = auth.user;
-    if (user?.roles?.educator) {
-      const updatedUser = { ...user, currentRole: 'educator' };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      login(auth.token, updatedUser);
+  const switchToEducator = async () => {
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/auth/switch-role`,
+        { newRole: 'educator' },
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      );
+      login(data.token, data.user); // Update context with new token and user info
       navigate('/educator');
+      toast.success('Switched to Educator role');
+    } catch (error) {
+      toast.error('Failed to switch role. Please try again.');
+      console.error('Role switch failed:', error);
     }
   };
 
   return (
-    <nav className="bg-blue-100 shadow-md fixed w-full z-50 top-0 left-0 border-b border-blue-100">
+    <nav className="bg-white shadow-md fixed w-full z-50 top-0 left-0 border-b border-blue-100">
       <div className="max-w-screen-xl mx-auto px-6 py-4 flex justify-between items-center">
 
         {/* Logo */}
@@ -42,16 +52,14 @@ const StudentNavbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-6 text-blue-600 font-medium">
-          <Link to="/" className="hover:text-blue-800 transition">Home</Link>
-          <Link to="/student/dashboard" className="hover:text-blue-800 transition">Dashboard</Link>
-          <Link to="/student/enrollments" className="hover:text-blue-800 transition">My Enrollments</Link>
-          <Link to="/student/ai-doubt-solver" className="hover:text-blue-800 transition">AI Doubt Solver</Link>
-          <Link to="/student/ai-quiz-taker" className="hover:text-blue-800 transition">AI Quiz Taker</Link>
+          <Link to="/my-enrollments" className="hover:text-blue-800 transition">My Enrollments</Link>
+          <Link to="/ai-doubt-solver" className="hover:text-blue-800 transition">AI Doubt Solver</Link>
+          <Link to="/ai-quiz-taker" className="hover:text-blue-800 transition">AI Quiz Taker</Link>
 
           {auth.user?.roles?.educator && (
             <button
               onClick={switchToEducator}
-              className="border border-blue-600 px-4 py-1 rounded-full hover:bg-blue-600 hover:text-white transition"
+              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
               Switch to Educator
             </button>
@@ -59,7 +67,7 @@ const StudentNavbar = () => {
 
           <button
             onClick={handleLogout}
-            className="bg-blue-600 text-white px-5 py-2 rounded-full shadow hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
           >
             Logout
           </button>
@@ -79,7 +87,6 @@ const StudentNavbar = () => {
       {/* Mobile Dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-white px-6 pt-4 pb-6 space-y-4 shadow-lg border-t border-blue-100 text-blue-600 font-medium">
-          <Link to="/" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Home</Link>
           <Link to="/student/dashboard" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Dashboard</Link>
           <Link to="/student/enrollments" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">My Enrollments</Link>
           <Link to="/student/ai-doubt-solver" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">AI Doubt Solver</Link>

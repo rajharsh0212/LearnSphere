@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { json } from 'express';
 dotenv.config();  
 
 
@@ -20,18 +21,23 @@ export const authMiddleware = (req, res, next) => {
 
 export const requireRole = (requiredRole) => {
   return (req, res, next) => {
+    console.log("Decoded User:", req.user);  // 🔍 log this
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized - no user info' });
     }
 
-    const { currentRole } = req.user;
-
-    if (currentRole !== requiredRole) {
-      return res.status(403).json({ message: `Access denied for role: ${currentRole}` });
+    if (req.user.currentRole !== requiredRole) {
+      return res.status(403).json({ message: `Access denied for role: ${req.user.currentRole}` });
     }
 
     next();
   };
+};
+export const isLoggedIn = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized - no user info' }); 
+  }
+  next();
 };
 
 

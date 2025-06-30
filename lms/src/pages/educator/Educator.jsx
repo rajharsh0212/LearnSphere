@@ -8,7 +8,7 @@ const Educator = () => {
     <div className="text-default min-h-screen bg-white">
       <div className="flex">
         <Sidebar />
-        <div className="flex-1">
+        <div className="flex-1 p-6 pt-24">
           <Outlet />
         </div>
       </div>

@@ -15,15 +15,29 @@ import RoleBasedNavbar from './components/RoleBasedNavbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './ProtectedRoute';
-const App = ()=> {
+import { ToastContainer } from 'react-toastify';
+import { AuthContext } from './context/AuthContext';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import { useContext } from 'react';
+import AiDoubtSolver from './pages/student/AiDoubtSolver';
+import AiQuizTaker from './pages/student/AiQuizTaker';
+
+const App = () => {
+  const { role } = useContext(AuthContext);
 
   return (
     <div>
+      <ToastContainer />
       <RoleBasedNavbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/courses" element={<CoursesList />} />
+        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route
             path="/student/dashboard"
             element={
@@ -48,6 +62,8 @@ const App = ()=> {
         <Route path="/my-enrollments" element={<MyEnrollments />} />
         <Route path="/player/:courseId" element={<Player />} />
         <Route path="/loading/:path" element={<Loading  />} />
+        <Route path="/ai-doubt-solver" element={<AiDoubtSolver />} />
+        <Route path="/ai-quiz-taker" element={<AiQuizTaker />} />
         <Route path="/educator" element={<Educator />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="add-course" element={<AddCourse />} />

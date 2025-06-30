@@ -2,18 +2,31 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
 import { AuthContext } from '../../context/AuthContext';
+import { AppContext } from '../../context/AppContext';
 import logo from '../../assets/logo_image.png'; // Adjust path to your actual logo
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const EducatorNavbar = () => {
   const { auth, logout, login } = useContext(AuthContext);
+  const { backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleRoleSwitch = () => {
-    const updatedUser = { ...auth.user, currentRole: 'student' };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    login(auth.token, updatedUser);
-    navigate('/');
+  const handleRoleSwitch = async () => {
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/auth/switch-role`,
+        { newRole: 'student' },
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      );
+      login(data.token, data.user);
+      navigate('/');
+      toast.success('Switched to Student role');
+    } catch (error) {
+      toast.error('Failed to switch role. Please try again.');
+      console.error('Role switch failed:', error);
+    }
   };
 
   const handleLogout = () => {
@@ -22,7 +35,7 @@ const EducatorNavbar = () => {
   };
 
   return (
-    <nav className="bg-blue-100 shadow-md fixed w-full z-50 top-0 left-0 border-b border-blue-100 position-sticky">
+    <nav className="bg-white shadow-md fixed w-full z-50 top-0 left-0 border-b border-blue-100 position-sticky">
       <div className="max-w-screen-xl mx-auto px-6 py-4 flex justify-between items-center">
 
         {/* Logo */}
@@ -43,7 +56,7 @@ const EducatorNavbar = () => {
           {auth.user?.roles?.student && (
             <button
               onClick={handleRoleSwitch}
-              className="border border-blue-600 px-4 py-1 rounded-full hover:bg-blue-600 hover:text-white transition"
+              className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-300"
             >
               Switch to Student
             </button>
@@ -51,7 +64,7 @@ const EducatorNavbar = () => {
 
           <button
             onClick={handleLogout}
-            className="bg-blue-600 text-white px-5 py-2 rounded-full shadow hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
           >
             Logout
           </button>
@@ -71,9 +84,8 @@ const EducatorNavbar = () => {
       {/* Mobile Dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-white px-6 pt-4 pb-6 space-y-4 shadow-lg border-t border-blue-100 text-blue-600 font-medium">
-          <Link to="/" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Home</Link>
           <Link to="/educator/dashboard" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Dashboard</Link>
-          <Link to="/educator/create-course" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Create Course</Link>
+          <Link to="/educator/add-course" onClick={() => setMenuOpen(false)} className="block hover:text-blue-800">Create Course</Link>
 
           {auth.user?.roles?.student && (
             <button

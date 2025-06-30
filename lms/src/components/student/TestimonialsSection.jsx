@@ -3,7 +3,7 @@ import {assets, dummyTestimonial } from '../../assets/assets';
 
 const Testimonials = () => {
   return (
-    <section className="pt-16 bg-white">
+    <section className="pt-20 bg-white">
       <div className="max-w-6xl mx-auto px-4 text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-4">Testimonials</h2>
         <p className="text-gray-600 mb-10 max-w-2xl mx-auto">

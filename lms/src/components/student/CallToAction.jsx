@@ -1,9 +1,23 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { assets } from '../../assets/assets';
+import { useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const CallToAction = () => {
+  const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (auth.token) {
+      toast.info("You are already logged in.");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
-    <section className="text-center pt-16 pb-20 px-4 bg-white">
+    <section className="text-center pt-20 pb-20 px-4 bg-white">
       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
         Learn anything, anytime, anywhere
       </h2>
@@ -11,15 +25,9 @@ const CallToAction = () => {
         Join thousands of learners and gain in-demand skills through expert-led <br />courses designed to fit your schedule and goals.
       </p>
       <div className="flex justify-center items-center gap-6 flex-wrap">
-        <Link to={"/login"} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-md font-semibold">
+        <button onClick={handleGetStarted} className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg">
             Get Started
-        </Link>
-        <Link
-          to="/login"
-          className="flex align-items-center justify-items-center text-gray-900 font-semibold hover:underline transition"
-        >
-          Learn more  <img src={assets.arrow_icon} alt="arrow-icon" />
-        </Link>
+        </button>
       </div>
     </section>
   );

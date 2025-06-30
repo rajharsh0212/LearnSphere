@@ -30,21 +30,22 @@ export const addCourse = async (req, res) => {
     const parsedCourseData = JSON.parse(courseData);
     parsedCourseData.educator = userId; // Set the educator field to the user's ID
 
-    const result = await cloudinary.uploader
-      .upload(imageFile.path, {
-        use_filename: true,
-        folder: "mern-lms",
-      })
-      .catch((error) => {
-        throw new Error(error.message);
-      });
-    parsedCourseData.courseThumbnail = result.secure_url;
-    console.log(parsedCourseData);
-    const newCourse = new Course(parsedCourseData);
+    const result = await cloudinary.uploader.upload(imageFile.path, {
+      folder: "mern-lms",
+    });
 
+    if (!result.secure_url) {
+      return res.status(500).json({ success: false, message: "Image upload failed. Please try again." });
+    }
+
+    parsedCourseData.courseThumbnail = result.secure_url;
+
+    const newCourse = new Course(parsedCourseData);
     await newCourse.save();
-    user.createdCourses.push(newCourse._id);
-    await user.save();
+
+    await User.findByIdAndUpdate(userId, {
+      $push: { createdCourses: newCourse._id },
+    });
 
     res
       .status(200)
@@ -71,51 +72,45 @@ export const getEducatorCourses = async (req, res) => {
     }
 }
 
-export const educatorDashboardData= async()=>{
-    try
-    {
-        const educator=req.user?.id; 
-        const courses= await Course.findById(educator);
-        const totalCourses=courses.length; 
-        
-        const courseIds = courses.map((course) => course._id); 
+export const educatorDashboardData = async (req, res) => {
+    try {
+        const educator = req.user?.id;
+        const courses = await Course.find({ educator });
+        const totalCourses = courses.length;
 
-        // assuming userId is set in the request by auth middleware
+        const courseIds = courses.map((course) => course._id);
 
-        const purchases= await Purchase.find(
-            {
-                courseId: { $in: courseIds },
-                status: "completed"
-            }
-        );
+        const purchases = await Purchase.find({
+            courseId: { $in: courseIds },
+            status: "completed"
+        });
+
         const totalEarnings = purchases.reduce((total, purchase) => total + purchase.amount, 0);
 
         const enrolledStudentsData = [];
         for (const course of courses) {
-          const students = await User.find(
-            { _id: { $in: course.enrolledStudents } },
-            "name"
-          );
-          students.forEach((student) => {
-            enrolledStudentsData.push({ student, courseTitle: course.courseTitle });
-          });
+            const students = await User.find(
+                { _id: { $in: course.enrolledStudents } },
+                "name"
+            );
+            students.forEach((student) => {
+                enrolledStudentsData.push({ student, courseTitle: course.courseTitle });
+            });
         }
 
         res.json({
-          success: true,
-          dashboardData: {
-            totalEarnings,
-            totalCourses,
-            enrolledStudentsData
-          },
+            success: true,
+            dashboardData: {
+                totalEarnings,
+                totalCourses,
+                enrolledStudentsData
+            },
         });
-      } catch (error) {
+    } catch (error) {
         console.error(error);
-        res
-          .status(500)
-          .json({ success: false, message: "Failed to fetch dashboard data" });
-      }
-    };
+        res.status(500).json({ success: false, message: "Failed to fetch dashboard data" });
+    }
+};
 
 export const getEnrolledStudentsData = async (req, res) => {
   try {

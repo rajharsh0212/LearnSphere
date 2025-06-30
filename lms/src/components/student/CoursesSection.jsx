@@ -7,7 +7,7 @@ const CoursesSection = () => {
   const { allcourses } = React.useContext(AppContext);
 
   return (
-    <div className="py-16 px-4 md: max-w-screen-xs mx-auto text-center">
+    <div className="pt-20 px-4 md: max-w-screen-xs mx-auto text-center">
       {/* Heading */}
       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
         Learn from the best
@@ -31,7 +31,7 @@ const CoursesSection = () => {
         <Link
           to="/course-list"
           onClick={() => window.scrollTo(0, 0)}
-          className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-semibold"
+          className="bg-white border border-gray-300 text-gray-700 font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-md hover:shadow-lg"
         >
           Show all courses
         </Link>
