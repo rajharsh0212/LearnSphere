@@ -21,7 +21,12 @@ app.post('/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // General middleware
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://learnsphere-beta.vercel.app',
+    'https://learn-sphere-dusky.vercel.app'
+  ],
   credentials: true
 }));
 app.use(express.json());
