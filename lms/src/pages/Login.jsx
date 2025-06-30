@@ -16,7 +16,7 @@ const Login = () => {
   const handleLogin = async e => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
         email,
         password,
         loginRole: role
