@@ -26,7 +26,7 @@ const Register = () => {
       return setErr('Please select at least one role to continue.');
     }
     try {
-      await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, {
         ...form,
         selectedRoles: form.roles
       });
