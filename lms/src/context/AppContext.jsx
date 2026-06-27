@@ -123,15 +123,23 @@ export const AppContextProvider= ({ children }) => {
     return (totalrating / course.courseRatings.length).toFixed(1);
   }
   const calculateCourseChapterTime = (chapter) => {
+    if (!chapter || !Array.isArray(chapter.chapterContent)) {
+      return "0m";
+    }
     const totalDuration = chapter.chapterContent.reduce((acc, lecture) => acc + lecture.lectureDuration, 0);
     return humanizeDuration(totalDuration * 60 * 1000, { units: ['h', 'm'], round: true });
   };
 
   // Functin to calculate course duration
   const calculateCourseDuration = (course) => {
+    if (!course || !Array.isArray(course.courseContent)) {
+      return "0m";
+    }
     let time = 0;
     course.courseContent.forEach(chapter => {
-      time += chapter.chapterContent.reduce((acc, lecture) => acc + lecture.lectureDuration, 0);
+      if (chapter && Array.isArray(chapter.chapterContent)) {
+        time += chapter.chapterContent.reduce((acc, lecture) => acc + lecture.lectureDuration, 0);
+      }
     });
     return humanizeDuration(time * 60 * 1000, { units: ['h', 'm'], round: true });
   };

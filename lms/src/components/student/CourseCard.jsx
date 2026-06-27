@@ -9,6 +9,7 @@ const CourseCard = ({ course }) => {
   const discountedPrice = (course.coursePrice - (course.discount * course.coursePrice / 100)).toFixed(2);
   const rating = calculateAverageRating(course);
   const totalLectures = calculateNoOfLectures(course);
+  const studentCount = course.enrolledStudents?.length || course.enrollmentCount || 0;
 
   const levelColor = {
     Beginner: 'bg-green-100 text-green-800',
@@ -47,7 +48,7 @@ const CourseCard = ({ course }) => {
           </div>
           <div className="flex items-center gap-1.5">
             <FiUsers />
-            <span>{course.enrolledStudents?.length || 0} Students</span>
+            <span>{studentCount} Students</span>
           </div>
         </div>
         

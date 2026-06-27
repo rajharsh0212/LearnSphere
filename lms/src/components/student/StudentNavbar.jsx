@@ -12,10 +12,15 @@ const StudentNavbar = () => {
   const { backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setMenuOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
+    setIsLoggingOut(false);
   };
 
   const switchToEducator = async () => {
@@ -67,9 +72,10 @@ const StudentNavbar = () => {
 
           <button
             onClick={handleLogout}
-            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+            disabled={isLoggingOut}
+            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Logout
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
           </button>
         </div>
 
@@ -105,13 +111,11 @@ const StudentNavbar = () => {
           )}
 
           <button
-            onClick={() => {
-              setMenuOpen(false);
-              handleLogout();
-            }}
-            className="w-full bg-blue-600 text-white py-2 rounded-full text-center hover:bg-blue-700"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full bg-blue-600 text-white py-2 rounded-full text-center hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Logout
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
           </button>
         </div>
       )}

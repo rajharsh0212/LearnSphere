@@ -12,6 +12,7 @@ const EducatorNavbar = () => {
   const { backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleRoleSwitch = async () => {
     try {
@@ -29,9 +30,13 @@ const EducatorNavbar = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setMenuOpen(false);
+    await logout();
+    navigate('/', { replace: true });
+    setIsLoggingOut(false);
   };
 
   return (
@@ -64,9 +69,10 @@ const EducatorNavbar = () => {
 
           <button
             onClick={handleLogout}
-            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+            disabled={isLoggingOut}
+            className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Logout
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
           </button>
         </div>
 
@@ -100,13 +106,11 @@ const EducatorNavbar = () => {
           )}
 
           <button
-            onClick={() => {
-              setMenuOpen(false);
-              handleLogout();
-            }}
-            className="w-full bg-blue-600 text-white py-2 rounded-full text-center hover:bg-blue-700"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full bg-blue-600 text-white py-2 rounded-full text-center hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Logout
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
           </button>
         </div>
       )}

@@ -99,7 +99,7 @@ const MyCourses = () => {
                     </p>
                     <div className="flex items-center gap-1">
                       <img src={assets.user_icon} alt="students" className="w-4 h-4" />
-                      <span>{course.enrolledStudents?.length || 0}</span>
+                                  <span>{course.enrolledStudents?.length || course.enrollmentCount || 0}</span>
                     </div>
                   </div>
                 </div>

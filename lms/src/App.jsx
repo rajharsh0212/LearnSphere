@@ -16,24 +16,48 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './ProtectedRoute';
 import { ToastContainer } from 'react-toastify';
-import { AuthContext } from './context/AuthContext';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import { useContext } from 'react';
 import AiDoubtSolver from './pages/student/AiDoubtSolver';
 import AiQuizTaker from './pages/student/AiQuizTaker';
+import { AuthContext } from './context/AuthContext';
+import { useContext } from 'react';
+
+const PublicOnlyRoute = ({ children }) => {
+  const { auth } = useContext(AuthContext);
+
+  if (auth.token && auth.user) {
+    const role = auth.user.currentRole;
+    if (role === 'educator') return <Navigate to="/educator/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
-  const { role } = useContext(AuthContext);
-
   return (
     <div>
       <ToastContainer />
       <RoleBasedNavbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          }
+        />
         <Route path="/courses" element={<CoursesList />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/about" element={<About />} />
@@ -59,16 +83,86 @@ const App = () => {
         <Route path="/course-list/:input" element={<CoursesList />} />
         <Route path="/course-list/:id" element={<CoursesList />} />
         <Route path="/course/:id" element={<CourseDetails/>} />
-        <Route path="/my-enrollments" element={<MyEnrollments />} />
-        <Route path="/player/:courseId" element={<Player />} />
-        <Route path="/loading/:path" element={<Loading  />} />
-        <Route path="/ai-doubt-solver" element={<AiDoubtSolver />} />
-        <Route path="/ai-quiz-taker" element={<AiQuizTaker />} />
-        <Route path="/educator" element={<Educator />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="add-course" element={<AddCourse />} />
-          <Route path="my-courses" element={<MyCourses />} />
-          <Route path="students-enrolled" element={<StudentsEnrolled />} />
+        <Route
+          path="/my-enrollments"
+          element={
+            <ProtectedRoute roles={['student']}>
+              <MyEnrollments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/player/:courseId"
+          element={
+            <ProtectedRoute roles={['student']}>
+              <Player />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/loading/:path"
+          element={
+            <ProtectedRoute>
+              <Loading />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-doubt-solver"
+          element={
+            <ProtectedRoute roles={['student']}>
+              <AiDoubtSolver />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-quiz-taker"
+          element={
+            <ProtectedRoute roles={['student']}>
+              <AiQuizTaker />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/educator"
+          element={
+            <ProtectedRoute roles={['educator']}>
+              <Educator />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute roles={['educator']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="add-course"
+            element={
+              <ProtectedRoute roles={['educator']}>
+                <AddCourse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="my-courses"
+            element={
+              <ProtectedRoute roles={['educator']}>
+                <MyCourses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="students-enrolled"
+            element={
+              <ProtectedRoute roles={['educator']}>
+                <StudentsEnrolled />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </div>

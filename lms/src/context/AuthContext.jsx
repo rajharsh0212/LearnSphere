@@ -43,34 +43,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async (callback) => {
-    if (auth.token) {
-      try {
-        const response = await axios.delete(`${backendUrl}/api/user/chat-history`, {
+    try {
+      if (auth.token) {
+        await axios.delete(`${backendUrl}/api/user/chat-history`, {
           headers: {
             Authorization: `Bearer ${auth.token}`,
           },
         });
-        
-        // Only proceed with logout if the server confirms success
-        if (response.data.success) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setAuth({ token: null, user: null });
-          if (typeof callback === 'function') {
-            callback();
-          }
-        } else {
-          // If server reports failure, log it but don't clear local session
-          console.error('Server failed to delete chat history:', response.data.message);
-          // Optionally, inform the user
-          // toast.error("Logout failed. Please try again.");
-        }
-      } catch (error) {
-        console.error('Failed to delete chat history', error);
-         // toast.error("Logout failed. Please try again.");
       }
-    } else {
-      // If there's no token, just clear local state
+    } catch (error) {
+      console.error('Failed to delete chat history', error);
+    } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setAuth({ token: null, user: null });

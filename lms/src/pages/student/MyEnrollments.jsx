@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Line } from "rc-progress";
 import Footer from "../../components/student/Footer";
 import axios from "axios";
@@ -8,16 +8,41 @@ import { AuthContext } from "../../context/AuthContext";
 
 const MyEnrollments = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { enrolledCourses, calculateCourseDuration,calculateNoOfLectures, userData, fetchUserEnrolledCourse, backendUrl } = useContext(AppContext);
   const [progressArray, setProgressArray] = useState([]);
   const {auth } = useContext(AuthContext);
+
+  const confirmPaymentIfNeeded = async () => {
+    try {
+      const sessionId = new URLSearchParams(location.search).get("session_id");
+      if (!sessionId || !auth.token) {
+        return;
+      }
+
+      await axios.post(
+        `${backendUrl}/api/user/purchase/confirm`,
+        { sessionId },
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
+
+      navigate(location.pathname, { replace: true });
+      fetchUserEnrolledCourse();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getCoursesProgress = async () => {
     try {
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async (course) => {
-          const { data } = await axios.post(
-            `${backendUrl}/api/user/get-course-progress`,
-            { courseId: course._id },
+          const { data } = await axios.get(
+            `${backendUrl}/api/user/get-course-progress/${course._id}`,
             {
               headers: {
                 Authorization: `Bearer ${auth.token}`,
@@ -38,6 +63,11 @@ const MyEnrollments = () => {
   useEffect(() => {
     fetchUserEnrolledCourse();
   }, [userData]);
+
+  useEffect(() => {
+    confirmPaymentIfNeeded();
+  }, [location.search, auth.token]);
+
   useEffect(() => {
     if (enrolledCourses.length > 0) {
       getCoursesProgress();

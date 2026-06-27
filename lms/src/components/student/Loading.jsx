@@ -1,18 +1,19 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const Loading = () => {
   const { path } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (path) {
       const timer = setTimeout(() => {
-        navigate(`/${path}`);
+        navigate(`/${path}${location.search}`);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [navigate, path]);
+  }, [navigate, path, location.search]);
 
   return (
     <div className='fixed inset-0 bg-gray-200 bg-opacity-75 z-50 flex items-center justify-center pointer-events-auto'>

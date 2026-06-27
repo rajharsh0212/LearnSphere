@@ -15,6 +15,7 @@ const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [courseData, setCourseData] = useState(null);
+  const [loadError, setLoadError] = useState("");
   const [daysLeft, setDaysLeft] = useState(null);
   const [openSections, setOpenSections] = useState({
     0: true,
@@ -23,7 +24,7 @@ const CourseDetails = () => {
   const [playerData, setPlayerData] = useState(null);
   const [activeTab, setActiveTab] = useState("description");
   const {
-    allCourses,
+    allcourses,
     currency,
     calculateAverageRating,
     calculateCourseChapterTime,
@@ -44,14 +45,21 @@ const CourseDetails = () => {
   };
 
   const fetchCourseData = async () => {
-    // const course = await allCourses.find((course) => course._id === id);
-
-    const { data } = await axios.get(`${backendUrl}/api/course/${id}`);
-    if (data.success) {
-      setCourseData(data.course);
-      setDaysLeft(data.daysLeft);
-    } else {
-      toast.error(data.message);
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/course/${id}`);
+      if (data.success && data.course) {
+        setCourseData(data.course);
+        setDaysLeft(data.daysLeft);
+        setLoadError("");
+      } else {
+        setCourseData(null);
+        setLoadError(data.message || "Failed to load course details.");
+        toast.error(data.message || "Failed to load course details.");
+      }
+    } catch (error) {
+      setCourseData(null);
+      setLoadError(error.message || "Failed to load course details.");
+      toast.error(error.message || "Failed to load course details.");
     }
   };
 
@@ -92,7 +100,7 @@ const CourseDetails = () => {
 
   useEffect(() => {
     fetchCourseData();
-  }, [allCourses]);
+  }, [id, backendUrl]);
 
   useEffect(() => {
     if (userData && courseData) {
@@ -102,6 +110,11 @@ const CourseDetails = () => {
 
   return (
     <div className="bg-gray-50">
+      {loadError && !courseData && (
+        <div className="mx-auto max-w-3xl px-6 pt-24 text-center text-red-600">
+          {loadError}
+        </div>
+      )}
       {courseData ? (
         <>
           <div className="flex md:flex-row flex-col-reverse gap-12 lg:gap-16 relative items-start justify-center md:px-12 lg:px-20 xl:px-32 px-6 md:pt-28 pt-20 pb-16 text-left">
@@ -121,18 +134,18 @@ const CourseDetails = () => {
               <div className="flex items-center gap-2 mt-4">
                 <p className="font-bold text-lg text-gray-800">{calculateAverageRating(courseData)}</p>
                 <Rating rating={calculateAverageRating(courseData)} />
-                <p className="text-sm text-gray-500">({courseData.courseRatings.length} ratings)</p>
+                <p className="text-sm text-gray-500">({courseData.courseRatings?.length || 0} ratings)</p>
               </div>
               <p className="text-sm mt-2">
                 Course by{" "}
                 <span className="text-indigo-600 font-medium underline">
-                  {courseData.educator.name}
+                  {courseData.educator?.name || "Educator"}
                 </span>
               </p>
               <div className="pt-12">
                 <h2 className="text-2xl font-bold text-gray-900">Course structure</h2>
                 <div className="mt-5 space-y-3">
-                  {courseData?.courseContent.map((chapter, index) => (
+                  {Array.isArray(courseData?.courseContent) && courseData.courseContent.map((chapter, index) => (
                     <div
                       key={index}
                       className="border border-gray-200 bg-white mb-3 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md"
@@ -246,7 +259,7 @@ const CourseDetails = () => {
                       Comments
                     </h2>
                     <ul className="flex flex-col pt-6 gap-6">
-                      {courseData.courseRatings.map((rating, index) => (
+                      {(courseData.courseRatings || []).map((rating, index) => (
                         <li key={index} className="flex gap-4">
                           <img
                             src={rating.userId.imageUrl}
@@ -288,7 +301,7 @@ const CourseDetails = () => {
                 <img src={courseData.courseThumbnail} alt="courseThumbnail" className="w-full object-cover" />
               )}
               <div className="p-6">
-                {daysLeft && (
+                {daysLeft !== null && daysLeft !== undefined && (
                   <div className="flex items-center gap-2 bg-orange-100/80 rounded-full px-3 py-1 w-fit">
                     <img
                       className="w-4 h-4 animate-bounce"
