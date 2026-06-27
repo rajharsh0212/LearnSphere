@@ -7,7 +7,7 @@ import User from "../models/User.js";
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
-      .select(["-courseContent", "-enrolledStudents"])
+      .select(["-courseContent"])
       .populate({ path: "educator" });
     res.json({ success: true, courses });
   } catch (error) {
