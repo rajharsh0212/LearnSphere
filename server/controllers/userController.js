@@ -37,6 +37,26 @@ export const userEnrolledCourses = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
+    const completedPurchases = await Purchase.find({
+      userId,
+      status: "completed",
+    }).populate({ path: "courseId" });
+
+    const completedCourseIds = completedPurchases
+      .map((purchase) => purchase.courseId?._id || purchase.courseId)
+      .filter(Boolean);
+
+    if (completedCourseIds.length > 0) {
+      await User.updateOne(
+        { _id: userId },
+        {
+          $addToSet: {
+            enrolledCourses: { $each: completedCourseIds },
+          },
+        }
+      );
+    }
+
     const user = await User.findById(userId).populate({ path: "enrolledCourses" });
 
     if (!user) {
@@ -116,7 +136,7 @@ export const purchaseCourse = async (req, res) => {
         courseId: courseId.toString(),
       },
       line_items,
-      success_url: `${origin}/loading/my-enrollments`,
+      success_url: `${origin}/loading/my-enrollments?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
     };
 
@@ -137,6 +157,75 @@ export const purchaseCourse = async (req, res) => {
   } catch (error) {
     console.error("Error in purchaseCourse:", error);
     res.status(500).json({ success: false, message: "Failed to purchase course" });
+  }
+};
+
+export const confirmStripePurchase = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { sessionId } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    if (!sessionId) {
+      return res.status(400).json({ success: false, message: "Session ID is required" });
+    }
+
+    const session = await Stripe.checkout.sessions.retrieve(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Stripe session not found" });
+    }
+
+    const { purchaseId, courseId, userId: sessionUserId } = session.metadata || {};
+    const resolvedUserId = sessionUserId || userId;
+
+    if (String(resolvedUserId) !== String(userId)) {
+      return res.status(403).json({ success: false, message: "Session does not belong to this user" });
+    }
+
+    if (!purchaseId || !courseId) {
+      return res.status(400).json({ success: false, message: "Missing purchase metadata" });
+    }
+
+    const purchaseData = await Purchase.findById(purchaseId);
+    if (!purchaseData) {
+      return res.status(404).json({ success: false, message: "Purchase not found" });
+    }
+
+    if (purchaseData.status === "completed") {
+      return res.json({ success: true, message: "Purchase already completed" });
+    }
+
+    const [userData, courseData] = await Promise.all([
+      User.findById(resolvedUserId),
+      Course.findById(courseId),
+    ]);
+
+    if (!userData || !courseData) {
+      return res.status(404).json({ success: false, message: "User or course not found" });
+    }
+
+    await Promise.all([
+      User.updateOne(
+        { _id: userData._id },
+        { $addToSet: { enrolledCourses: courseData._id } }
+      ),
+      Course.updateOne(
+        { _id: courseData._id },
+        { $addToSet: { enrolledStudents: userData._id } }
+      ),
+    ]);
+
+    purchaseData.status = "completed";
+    purchaseData.paymentId = session.payment_intent || session.id;
+    await purchaseData.save();
+
+    res.json({ success: true, message: "Purchase confirmed successfully" });
+  } catch (error) {
+    console.error("Error confirming Stripe purchase:", error);
+    res.status(500).json({ success: false, message: "Failed to confirm purchase" });
   }
 };
 
@@ -180,11 +269,10 @@ export const getUserCourseProgress = async (req, res) => {
     
         const progressData = await CourseProgress.findOne({ userId, courseId });
     
-        if (!progressData) {
-        return res.status(404).json({ success: false, message: "No progress found for this course" });
-        }
+        // Return empty progress if not found yet (normal for newly enrolled courses)
+        const result = progressData || { lectureCompleted: [] };
     
-        res.json({ success: true,progressData});
+        res.json({ success: true, progressData: result });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Failed to fetch course progress" });
@@ -206,12 +294,18 @@ export const addUserRating = async (req, res) => {
         return res.status(404).json("Course not found!");
     }
     const user = await User.findById(userId);
-    if (!user || !user.roles.student || !user.enrolledCourses.includes(courseId)) {
+    const isEnrolled = user?.enrolledCourses?.some(
+      (enrolledCourseId) => enrolledCourseId.toString() === courseId.toString()
+    );
+
+    if (!user || !user.roles.student || !isEnrolled) {
       return res.status(404).json("User not found!");
     }
     
     // Check if user has already rated this course
-    const existingRating = course.courseRatings.findIndex(r => r.userId === userId);
+    const existingRating = course.courseRatings.findIndex(
+      (r) => r.userId?.toString() === userId.toString()
+    );
     if(existingRating !== -1) {
         course.courseRatings[existingRating].rating = rating;
     }
@@ -242,12 +336,18 @@ export const addUserComment = async (req, res) => {
         return res.status(404).json("Course not found!");
     }
     const user = await User.findById(userId);
-    if (!user || !user.roles.student || !user.enrolledCourses.includes(courseId)) {
+    const isEnrolled = user?.enrolledCourses?.some(
+      (enrolledCourseId) => enrolledCourseId.toString() === courseId.toString()
+    );
+
+    if (!user || !user.roles.student || !isEnrolled) {
       return res.status(404).json("User not found!");
     }
     
     // Check if user has already commented on this course
-    const existingComment = course.courseRatings.findIndex(c => c.userId === userId);
+    const existingComment = course.courseRatings.findIndex(
+      (c) => c.userId?.toString() === userId.toString()
+    );
     if(existingComment !== -1) {
         if(course.courseRatings[existingComment].comment) {
             return res.status(400).json({ message: "You have already commented on this course" });

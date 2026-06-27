@@ -11,7 +11,8 @@ import {
   getChatHistory,
   deleteChatHistory,
   saveQuizAttempt,
-  getQuizHistory
+  getQuizHistory,
+  confirmStripePurchase
 } from '../controllers/userController.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ const router = express.Router();
 router.get('/data', authMiddleware, getUserData);
 router.get('/enrolled-courses', authMiddleware, userEnrolledCourses);
 router.post('/purchase', authMiddleware, requireRole('student'), purchaseCourse);
+router.post('/purchase/confirm', authMiddleware, requireRole('student'), confirmStripePurchase);
 router.post('/update-course-progress', authMiddleware, updateUserCourseProgress);
 router.get('/get-course-progress/:courseId', authMiddleware, getUserCourseProgress);
 router.post('/add-rating', authMiddleware, addUserRating);
