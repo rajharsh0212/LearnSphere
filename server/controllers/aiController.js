@@ -14,7 +14,7 @@ export const generateDoubtSolution = async (req, res) => {
         }
 
         // For text-only input, use a current and recommended model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -50,7 +50,7 @@ export const generateQuiz = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required fields." });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
             Generate a multiple-choice quiz based on the following criteria:
